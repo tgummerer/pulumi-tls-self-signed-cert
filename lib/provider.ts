@@ -35,6 +35,16 @@ class ComponentProvider implements provider.Provider {
             state: getInputsFromOutputs(comp),
         }
     }
+
+    handshake(call: any, callback: any) {
+	throw new Error("handshake not implemented");
+	console.log("handshake");
+	console.log(call);
+	callback(null, {
+	    version: this.version,
+	    schema: this.schema,
+	});
+    }
 }
 
 export function singleComponentHost<T extends pulumi.ComponentResource, A>(cons: new (ame: string, inputs: A, options: pulumi.ComponentResourceOptions) => T) {
@@ -48,7 +58,7 @@ export function singleComponentHost<T extends pulumi.ComponentResource, A>(cons:
 
 export function componentProviderHost(factory: CreateComponentFunction) {
     const args = process.argv.slice(2);
-    const packStr = readFileSync("./package.json", {encoding: "utf-8"});
+    const packStr = readFileSync(process.env.PULUMI_ROOT_DIRECTORY+"/package.json", {encoding: "utf-8"});
     const pack = JSON.parse(packStr);
 
     if (args.length === 1 && args[0] === "--gen") {
@@ -57,7 +67,7 @@ export function componentProviderHost(factory: CreateComponentFunction) {
         return;
     }
 
-    const schema: string = readFileSync("./schema.json", {encoding: "utf-8"});
+    const schema: string = readFileSync(process.env.PULUMI_ROOT_DIRECTORY+"/schema.json", {encoding: "utf-8"});
     const prov = new ComponentProvider(pack.version, schema, factory);
     return pulumi.provider.main(prov, args);
 }
